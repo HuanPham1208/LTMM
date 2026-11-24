@@ -5,7 +5,7 @@ uint64_t IP_function(uint64_t plaintext) {
     uint64_t result = 0;
     for (int i = 0; i < 64; ++i) {
         result <<= 1;
-        result |= (plaintext >> (64 - IP[i])) & 1ULL;
+        result |= (plaintext >> (64 - IP[i])) & 1 ;
     }
     return result;
 }
@@ -13,7 +13,7 @@ uint64_t IP_inverse_function(uint64_t input) {
     uint64_t result = 0;
     for (int i = 0; i < 64; ++i) {
         result <<= 1;
-        result |= (input >> (64 - IP_INV[i])) & 1ULL;
+        result |= (input >> (64 - IP_INV[i])) & 1 ;
     }
     return result;
 }
@@ -33,7 +33,7 @@ uint64_t E_function(uint32_t input) {
     uint64_t result = 0;
     for (int i = 0; i < 48; ++i) {
         result <<= 1;
-        result |= (static_cast<uint64_t>(input) >> (32 - E[i])) & 1ULL;
+        result |= (static_cast<uint64_t>(input) >> (32 - E[i])) & 1 ;
     }
     return result;
 }
@@ -57,7 +57,7 @@ uint64_t PC1_function(uint64_t key) {
     uint64_t result = 0;
     for (int i = 0; i < 56; ++i) {
         result <<= 1;
-        result |= (key >> (64 - PC1[i])) & 1ULL;
+        result |= (key >> (64 - PC1[i])) & 1 ;
     }
     return result;
 }
@@ -66,25 +66,24 @@ uint64_t PC2_function(uint64_t input) {
     uint64_t result = 0;
     for (int i = 0; i < 48; ++i) {
         result <<= 1;
-        result |= (input >> (56 - PC2[i])) & 1ULL;
+        result |= (input >> (56 - PC2[i])) & 1 ;
     }
     return result;
 }
 //Hàm dịch vòng trái
 uint64_t left_shift(uint64_t input, int s) {
-    input &= 0x0FFFFFFFULL;
-    return ((input << s) | (input >> (28 - s))) & 0x0FFFFFFFULL;
+    input &= 0x0FFFFFFF ;
+    return ((input << s) | (input >> (28 - s))) & 0x0FFFFFFF;
 }
 //Hàm tạo khoá con
 void gen_subkey(uint64_t key, uint64_t k[16]) {
-    uint64_t selected = PC1_function(key);
-    uint64_t C = (selected >> 28) & 0x0FFFFFFFULL;
-    uint64_t D = selected & 0x0FFFFFFFULL;
+    uint64_t  V = PC1_function(key);
+    uint64_t C = ( V >> 28) & 0x0FFFFFFF;
+    uint64_t D =  V & 0x0FFFFFFF;
 
-    for (int round = 0; round < 16; ++round) {
-        C = left_shift(C, SHIFTS[round]);
-        D = left_shift(D, SHIFTS[round]);
-        uint64_t joined = (C << 28) | D;
-        k[round] = PC2_function(joined);
+    for (int  i = 0;  i < 16; ++ i) {
+        C = left_shift(C, SHIFTS[ i]);
+        D = left_shift(D, SHIFTS[ i]);
+        k[i] = PC2_function((C << 28) | D);
     }
 }
