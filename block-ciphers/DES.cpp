@@ -1,5 +1,6 @@
 #include "des.h"
 
+//Hàm hoán vị IP và IP^-1
 uint64_t IP_function(uint64_t plaintext) {
     uint64_t result = 0;
     for (int i = 0; i < 64; ++i) {
@@ -8,7 +9,6 @@ uint64_t IP_function(uint64_t plaintext) {
     }
     return result;
 }
-
 uint64_t IP_inverse_function(uint64_t input) {
     uint64_t result = 0;
     for (int i = 0; i < 64; ++i) {
@@ -17,6 +17,7 @@ uint64_t IP_inverse_function(uint64_t input) {
     }
     return result;
 }
+
 
 //Hàm hoán vị P
 uint32_t P_function(uint32_t input) {
@@ -27,7 +28,6 @@ uint32_t P_function(uint32_t input) {
     }
     return result;
 }
-
 //Hàm mở rộng E
 uint64_t E_function(uint32_t input) {
     uint64_t result = 0;
@@ -37,7 +37,6 @@ uint64_t E_function(uint32_t input) {
     }
     return result;
 }
-
 uint32_t f_function(uint32_t R, uint64_t ki) {
     uint64_t expanded = E_function(R) ^ ki; // Mở rộng R từ 32 -> 48 bit rồi xor với key
 
@@ -51,4 +50,41 @@ uint32_t f_function(uint32_t R, uint64_t ki) {
     }
 
     return P_function(sboxOutput);
+}
+
+//Hàm hoán vị PC1 và PC2
+uint64_t PC1_function(uint64_t key) {
+    uint64_t result = 0;
+    for (int i = 0; i < 56; ++i) {
+        result <<= 1;
+        result |= (key >> (64 - PC1[i])) & 1ULL;
+    }
+    return result;
+}
+
+uint64_t PC2_function(uint64_t input) {
+    uint64_t result = 0;
+    for (int i = 0; i < 48; ++i) {
+        result <<= 1;
+        result |= (input >> (56 - PC2[i])) & 1ULL;
+    }
+    return result;
+}
+//Hàm dịch vòng trái
+uint64_t left_shift(uint64_t input, int s) {
+    input &= 0x0FFFFFFFULL;
+    return ((input << s) | (input >> (28 - s))) & 0x0FFFFFFFULL;
+}
+//Hàm tạo khoá con
+void gen_subkey(uint64_t key, uint64_t k[16]) {
+    uint64_t selected = PC1_function(key);
+    uint64_t C = (selected >> 28) & 0x0FFFFFFFULL;
+    uint64_t D = selected & 0x0FFFFFFFULL;
+
+    for (int round = 0; round < 16; ++round) {
+        C = left_shift(C, SHIFTS[round]);
+        D = left_shift(D, SHIFTS[round]);
+        uint64_t joined = (C << 28) | D;
+        k[round] = PC2_function(joined);
+    }
 }
