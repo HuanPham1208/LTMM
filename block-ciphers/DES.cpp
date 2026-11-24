@@ -18,6 +18,7 @@ uint64_t IP_inverse_function(uint64_t input) {
     return result;
 }
 
+//Hàm hoán vị P
 uint32_t P_function(uint32_t input) {
     uint32_t result = 0;
     for (int i = 0; i < 32; ++i) {
@@ -25,4 +26,29 @@ uint32_t P_function(uint32_t input) {
         result |= (input >> (32 - P[i])) & 1U;
     }
     return result;
+}
+
+//Hàm mở rộng E
+uint64_t E_function(uint32_t input) {
+    uint64_t result = 0;
+    for (int i = 0; i < 48; ++i) {
+        result <<= 1;
+        result |= (static_cast<uint64_t>(input) >> (32 - E[i])) & 1ULL;
+    }
+    return result;
+}
+
+uint32_t f_function(uint32_t R, uint64_t ki) {
+    uint64_t expanded = E_function(R) ^ ki; // Mở rộng R từ 32 -> 48 bit rồi xor với key
+
+    //// 2. Xu ly 8 khoi 6 bit qua 8 bang S-Box
+    uint32_t sboxOutput = 0;
+    for (int box = 0; box < 8; ++box) {
+        uint8_t sixBits = static_cast<uint8_t>((expanded >> (42 - 6 * box)) & 0x3F);
+        int row = ((sixBits & 0x20) >> 4) | (sixBits & 0x01);
+        int column = (sixBits >> 1) & 0x0F;
+        sboxOutput = (sboxOutput << 4) | SBOX[box][row][column];
+    }
+
+    return P_function(sboxOutput);
 }
