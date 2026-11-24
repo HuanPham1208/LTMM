@@ -117,7 +117,8 @@ uint64_t left_shift(uint64_t input, int s);
 void gen_subkey(uint64_t key, uint64_t k[16]);
 
 //Hàm mã hoá và giải mã
-void encryptBlock(const uint8_t input[8], const uint8_t key[8], uint8_t output[8]);
-void decryptBlock(const uint8_t input[8], const uint8_t key[8], uint8_t output[8]);
+uint64_t processBlock(uint64_t input, uint64_t key, bool decrypt);
+uint64_t encrypt(uint64_t plaintext, uint64_t key);
+uint64_t decrypt(uint64_t ciphertext, uint64_t key);
 
 #endif 
